@@ -1,12 +1,14 @@
 ---
 title: "Grupo 14_Trabajo_Final_Asignatura 3"
-author: "Integrantes: Mercedes de la Torre Fuentes/Diego Alonso Solano Bolaños/Kattia Zúñiga Acosta / Ricardo Mir de Francia/Jaco Warris"
+author: "Integrantes: Mercedes de la Torre Fuentes/Diego Alonso Solano Bolaños/Kattia Zúñiga Acosta / Ricardo Mir de Francia/Jacob Warris"
 date: "2024-12-11"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(plotrix)
 library(ggplot2)
 library(dplyr)
 library(GGally)
@@ -24,7 +26,6 @@ library(e1071)
 Nuestro conjunto de datos inicial contiene 2111 observaciones y 18 variables (without any NA values), obtenidas inicialmente mediante una encuesta en línea y ampliadas después con datos sintéticos. Se preveía utilizar los datos para investigar qué factores están asociados al sobrepeso y la obesidad.<br>
 
 ```{r}
-library(readr)
 obesity_data_raw = read.csv("./data/ObesityDataSet_raw_and_data_sinthetic.csv", header = T, sep = ",")
 head(obesity_data_raw)
 tail(obesity_data_raw)
@@ -631,7 +632,7 @@ rm(obesity_data_raw)
 
 #### **2.1.1 Procede con la carga de datos<br>**
 ```{r}
-datatrain <- read.csv('./data/ObesityDataSet_raw_and_data_sinthetic.csv')
+datatrain = obesity_data_preprocessed
 ```
 #### **2.1.2 Revisión del Dataset para evaluar la variable a utilizar para el modelo predictivo<br>**
 ```{r}
@@ -645,20 +646,20 @@ Con la revisión del dataset y sus variables se determina que para desarrollar e
 <br>
 
 
-#### **2.1.3 Verificar la Factibilidad de la Variable SMOKE<br><br>**
+#### **2.1.3 Verificar la Factibilidad de la Variable Smoker<br><br>**
 
-Se debe analizar la variable "SMOKE", para determinar si es factible para predicir si una persona es o no fumador<br>
+Se debe analizar la variable "Smoker", para determinar si es factible para predicir si una persona es o no fumador<br>
 
 ```{r}
 #Se procede a convertir a binario
-datatrain$SMOKE <- ifelse(datatrain$SMOKE == "yes", 1, 0)
+datatrain$Smoker <- ifelse(datatrain$Smoker == "yes", 1, 0)
 ```
 ```{r}
 # Se verifica Frecuencia o cantidad de casos (NO Fumadores = 0/Fumadores =1)
-table(datatrain$SMOKE)
+table(datatrain$Smoker)
 
 # Se valida el %Porcentaje  de los datos observados (NO Fumadores = 0/Fumadores =1)
-prop.table(table(datatrain$SMOKE))
+prop.table(table(datatrain$Smoker))
 ```
 <br>
 Según la clasificación binaria o multiclase si los datos de la variable estudiada
@@ -677,7 +678,7 @@ dim(datatrain.set)
 #Datos a Probar
 dim(datatest.set)
 #Se procede a probar el modelo de regresión logistíca binaria con los datos para entrenamiento
-model <- glm(SMOKE ~.,family=binomial(link='logit'),data=datatrain.set) 
+model <- glm(Smoker ~.,family=binomial(link='logit'),data=datatrain.set) 
 summary(model)
 #Se ejecuta la predicción con los datos modelados y set de pruebas
 pred.train <- predict(model,datatest.set)
@@ -685,7 +686,7 @@ pred.train <- ifelse(pred.train > 0.5,1,0)
 ```
 <br>
 <br>
-Regresión logística nos indica que parámetro binomial está cerca de 1, por lo que nos sugiere que los datos estudiados no tiene exceso de variabilidad(sobre dispersión) , el null deviance y residual deviance presenta valores menores a 300, lo que sugiere que modelo mejora al incluir predictores,y nos presenta 15 a 20 iteraciones por lo que nos da equilibrio razonable entre ajuste y complejidad del modelo al hacer predicciones,lo que nos indica que SMOKE se le puede aplicar un modelo predictivo cuyas variables mas importantes son AGE para predecir.
+Regresión logística nos indica que parámetro binomial está cerca de 1, por lo que nos sugiere que los datos estudiados no tiene exceso de variabilidad(sobre dispersión) , el null deviance y residual deviance presenta valores menores a 300, lo que sugiere que modelo mejora al incluir predictores,y nos presenta 15 a 20 iteraciones por lo que nos da equilibrio razonable entre ajuste y complejidad del modelo al hacer predicciones,lo que nos indica que Smoker se le puede aplicar un modelo predictivo cuyas variables mas importantes son AGE para predecir.
 <br>
 <br>
 
@@ -695,16 +696,16 @@ Regresión logística nos indica que parámetro binomial está cerca de 1, por l
 ##### **Accuracy:(Número de predicciones correctas/Número Datos Pruebas)<br>**
 
 ```{r}
-mean(pred.train==datatest.set$SMOKE)
+mean(pred.train==datatest.set$Smoker)
 
 ```
-El accuracy nos indica que el modelo predictivo tiene una precision del 97% para los datos de pruebas, lo cual nos ayuda determinar que el 97% de las predicciones coinciden con los valores reales de variable "SMOKE" en el conjunto de data de prueba, lo cual nos comprueba el punto 2.1.3 sobre desbalanceo de los datos. <br><br>
+El accuracy nos indica que el modelo predictivo tiene una precision del 97% para los datos de pruebas, lo cual nos ayuda determinar que el 97% de las predicciones coinciden con los valores reales de variable "Smoker" en el conjunto de data de prueba, lo cual nos comprueba el punto 2.1.3 sobre desbalanceo de los datos. <br><br>
 
 ##### **Presicion y Recall <br>**
 
 El cálculo de precisión nos ayuda encontra los verdaderos positivos entre todos los casos predichos, y el recall permitirá mide los verdaderos positivos entre los casos positivos.<br>
 ```{r}
-calPre_call<-table(pred.train,datatest.set$SMOKE)
+calPre_call<-table(pred.train,datatest.set$Smoker)
 presicion<- calPre_call[1,1]/(sum(calPre_call[1,]))
 recall<- calPre_call[1,1]/(sum(calPre_call[,1]))
 #Imprime Precision
@@ -712,9 +713,9 @@ presicion
 #Imprime Recall
 recall
 ```
-Precisión tiene un  resultado 0.97 aproximadamente, lo que nos indica que el 97% de las predicciones positivas para la variable smoke = 0 ,  lo cual el modelo comete pocos falsos positivos.
+Precisión tiene un  resultado 0.97 aproximadamente, lo que nos indica que el 97% de las predicciones positivas para la variable Smoker = 0 ,  lo cual el modelo comete pocos falsos positivos.
 <br>
-Recall dio como resultado 0.99, lo que nos demuestra que el 99% de las prediciones encontró una observación positiva smoke = 0, lo que indica que el modelo no da falsos negativos, lo que nos comprueba que hay desbalanceo de los datos "No fumadores" / "Si Fumadores"<br>
+Recall dio como resultado 0.99, lo que nos demuestra que el 99% de las prediciones encontró una observación positiva Smoker = 0, lo que indica que el modelo no da falsos negativos, lo que nos comprueba que hay desbalanceo de los datos "No fumadores" / "Si Fumadores"<br>
 <br>
 
 ##### **FI-SCORE <br>**
@@ -731,21 +732,21 @@ F1 tiene una como valor 0.98 por lo que nos indica que el hay un buen balance en
 
 Se averigua el resultado de la matriz de confusión para averiguar el rendimiento del modelo de clasificación<br>
 ```{r}
-table(Predicted = pred.train, Actual = datatest.set$SMOKE)
+table(Predicted = pred.train, Actual = datatest.set$Smoker)
 ```
 - Verdaderos Negativos(tn) En la matriz de confusión obtenemos los siguientes valores<br> 
-El modelo predijo smoke = 0 cuando realmente era 0. <br>
--Falsos Positivos(FP)=15 , predijo incorrectamente smoke = 1 cuando realmente era 0.<br>
--Falsos Negativos(FN)=4, predijo incorrectamente smoke = 0 cuando la clase real era 1. <br>
--Verdaderos Positivos = 0, no predijo correctamente ningun caso de smoke = 1.<br><br>
+El modelo predijo Smoker = 0 cuando realmente era 0. <br>
+-Falsos Positivos(FP)=15 , predijo incorrectamente Smoker = 1 cuando realmente era 0.<br>
+-Falsos Negativos(FN)=4, predijo incorrectamente Smoker = 0 cuando la clase real era 1. <br>
+-Verdaderos Positivos = 0, no predijo correctamente ningun caso de Smoker = 1.<br><br>
 
 Esto nos comprueba la teoria del punto 2.3.1, los datos utilizados no son factibles para hacer prediciones, porque ha ignorado por completo casos de "SI FUMADORES", el cual si existieran más del 40% habria verdaderos positivos, este caso el modelo a ignorado completamente las personas de nuestro dataset que si son fumadores, para cuestiones de estadísticas o estudios  no podríamos dar una conclusión segura de cuales variables o que motiva a una persona hacer fumador o no. 
 
 #### **2.1.6 Conclusión del Caso Detectar si una persona es fumador o no <br>**
 <br>
-Se valida las métricas el accuracy, precisión, recall, están por encima 97% lo cuál nos indica que el modelo tiene un buen desempeño para predicir correctamente los datos de (No fumadores smoke = 0/Si Fumadores smoke =1 ), según lo estudiado esto no es lo normal para un modelo.
+Se valida las métricas el accuracy, precisión, recall, están por encima 97% lo cuál nos indica que el modelo tiene un buen desempeño para predicir correctamente los datos de (No fumadores Smoker = 0/Si Fumadores Smoker =1 ), según lo estudiado esto no es lo normal para un modelo.
 
-Según lo revisado desde el inicio de estudio del modelo predictivo los datos de la variable smoke indica hay un desbalanceo de los datos, por lo que siempre va tomar los resultados de los "No Fumadores", e ignorar los datos "Si Fumadores", lo que afecta el rendimiento del modelo para predecir correctamente, y en la matriz de confusión se observa correctamente la anomalia, se dan falsos negativos y falsos positivos, pero ningun caso positivo de si fumadores , por lo que modelo predictivo no es aplicable para predecir la variable "smoke"<br><br>
+Según lo revisado desde el inicio de estudio del modelo predictivo los datos de la variable Smoker indica hay un desbalanceo de los datos, por lo que siempre va tomar los resultados de los "No Fumadores", e ignorar los datos "Si Fumadores", lo que afecta el rendimiento del modelo para predecir correctamente, y en la matriz de confusión se observa correctamente la anomalia, se dan falsos negativos y falsos positivos, pero ningun caso positivo de si fumadores , por lo que modelo predictivo no es aplicable para predecir la variable "Smoker"<br><br>
 
 ## **2.2 Modelo Predictivo para detectar si un usuario controla o no las calorías<br>**
 
@@ -1104,86 +1105,76 @@ En resumen podemos indicar que el modelo es confiable para clasificar el grado d
 
 ## **4. Técnica de Clustering para Segmentar a la Población del Data Set**
 
-#### **4.1 Convertimos FAVC ("yes"/"no") a valores numéricos (1/0)<br><br>**
+#### **4.1 Seleccionamos las variables para el clustering: High_Caloric_Consumption (consumo de comida calórica), Vegetable_Consumption (consumo de vegetales) y BMI. Creamos un dataset con estas columnas para simplificar el análisis<br><br>**
 ```{r}
-data<- read.csv('./data/ObesityDataSet_raw_and_data_sinthetic.csv')
-data$FAVC <- ifelse(data$FAVC == "yes", 1, 0)
-```
-#### **4.2 Crear una columna nueva que será el BMI (Body Mass Index).<br><br>** 
-Es importante porque relaciona peso y altura y es comunmente usada para analizar patrones con la salud. A parte de eso, simpifica el clustering al combinar altura y peso en una variable<br>
-```{r}
-data$BMI <- data$Weight / (data$Height^2)
-```
-#### **4.3 Seleccionamos las variables para el clustering: FAVC (consumo de comida calórica), FCVC (consumo de vegetales) y BMI. Creamos un dataset con estas columnas para simplificar el análisis<br><br>**
-```{r}
-data_clustering <- data[, c("FAVC", "FCVC", "BMI")]
+data_clustering <- data[, c("High_Caloric_Consumption", "Vegetable_Consumption", "BMI")]
 ```
 
-#### **4.4 Verificamos el set dentro del set creado:<br><br>**
+#### **4.2 Verificamos el set dentro del set creado:<br><br>**
 ```{r}
 head(data_clustering)
 ```
-#### **4.5 Determinaremos el número de clusters con el Método del codo<br><br>**
+#### **4.3 Determinaremos el número de clusters con el Método del codo<br><br>**
 
 ```{r}
 set.seed(101)
 ```
-#### **4.6 Ejecutamos k-means con un número arbitrario de clusters (3)<br><br>**
+#### **4.4 Ejecutamos k-means con un número arbitrario de clusters (3)<br><br>**
 ```{r}
 clustering_result<-kmeans(data_clustering, center=3, nstart=20)
 ```
-#### **4.7 Visualizamos los resultados <br><br>**
+#### **4.5 Visualizamos los resultados <br><br>**
 ```{r}
 clustering_result
 ```
 
-#### **4.8 Evaluamos el clustering creando una tabla para analizar cómo se relacionan los clusters con una variable conocida <br><br>**
+#### **4.6 Evaluamos el clustering creando una tabla para analizar cómo se relacionan los clusters con una variable conocida <br><br>**
 ```{r}
 table(clustering_result$cluster,data$NObeyesdad)
 ```
-#### **4.9 Evaluamos si 3 es un buen número de clusters o si necesitamos ajustar<br><br>**
+#### **4.7 Evaluamos si 3 es un buen número de clusters o si necesitamos ajustar<br><br>**
 ```{r}
 tot.withinss <- vector(mode = "numeric", length = 10)
 for (i in 1:10) {
   kmeans_test <- kmeans(data_clustering, centers = i, nstart = 20)
   tot.withinss[i] <- kmeans_test$tot.withinss}
 ```
-#### **4.10 Graficamos el Método del Codo <br><br>**
+#### **4.8 Graficamos el Método del Codo <br><br>**
 ```{r}
 plot(1:10, tot.withinss, type = "b", pch = 19, 
      main = "ELBOW GRAPH")
 ```
 Observamos que 3 es un buen número pues después del 3 la curva se vuelve más plana por lo que aumentar el número de clusters no aportará una mejora significativa.<br><br>
 
-#### **4.11 Visualizamos los clusters <br><br>**
+#### **4.9 Visualizamos los clusters <br><br>**
 ```{r}
 library(cluster)
 clusplot(data_clustering, clustering_result$cluster, color=TRUE, shade=TRUE, labels=0, lines=0, main = "CLUSTERING PLOT")
 ```
 Observamos que hay claramente 3 grupos: rojo, rosa y azul. Se obseerva una superposición entre los clusters, principalmente el rojo y el rosa lo que nos quiere decir que los grupos no están perfectamente diferenciados y que puede haber patrones de comportamiento similares entre individuos de estos clusters.<br><br>
 
-#### **4.12 Visualizamos el Coeficiente de Silueta <br><br>**
+#### **4.10 Visualizamos el Coeficiente de Silueta <br><br>**
 ```{r}
 library(factoextra)
 fviz_silhouette(silhouette(clustering_result$cluster, dist(data_clustering)), main = "SILHOUETTE")
 ```
 La mayoría de los puntos tienen valores mayores a 0.5, lo cual sugiere que el custering es aceptable. El cluster verde tiene los valores de silueta más altos indicando que los puntos están mejor definidos. El rojo presenta mayor variabilidad y el azul muestra una forma regular con valores medios.<br><br>
 
-#### **4.13 Calculamos la matriz de distancias usando el método "canberra"<br><br>**
+#### **4.11 Calculamos la matriz de distancias usando el método "canberra"<br><br>**
 ```{r}
 dist_matrix <- dist(data_clustering, method = "canberra")
 ```
 
-#### **4.14 Aplicamos el clustering jerárquico con el método "complete"<br><br>**
+#### **4.12 Aplicamos el clustering jerárquico con el método "complete"<br><br>**
 ```{r}
 hclust_result <- hclust(dist_matrix, method = "complete")
 ```
-#### **4.15 Visualizamos el dendrograma <br><br>**
+#### **4.13 Visualizamos el dendrograma <br><br>**
 ```{r}
 plot(hclust_result, hang = -1, cex = 0.6, main = "DENDROGRAM: Canberra Distance")
 ```
 
-#### **4.16 Procedemos a cortar el dendrograma:<br><br>**
+#### **4.14 Procedemos a cortar el dendrograma:<br><br>**
 ```{r}
 plot(hclust_result, hang = -1, cex = 0.6, main = "DENDROGRAM: Canberra Distance")
 abline(h = 1.5, col = "red", lty = 2) 
@@ -1201,7 +1192,7 @@ Proviene del clustering jerárquico y muestra la estructura de los datos en form
 **Clustering Plot:**<br><br> 
   Este gráfico proyecta los clusters de K-means en dos componentes principales:
   Muestra cómo se distribuyen los puntos.<br><br>
-  Expone la superposición entre los clusters rojo y azul, lo que sugiere similitudes en las  variables utilizadas (BMI, FAVC y FCVC).<br><br>
+  Expone la superposición entre los clusters rojo y azul, lo que sugiere similitudes en las  variables utilizadas (BMI, High_Caloric_Consumption y Vegetable_Consumption).<br><br>
 
 #### **Cómo se Relacionan los Tres Gráficos**<br><br> 
 **Silhouette Plot:**<br><br>
@@ -1219,8 +1210,8 @@ Proviene del clustering jerárquico y muestra la estructura de los datos en form
   #Cluster Verde:Representa a las personas con mejores hábitos (alto consumo de vegetales, menor BMI, menor consumo calórico).<br>
    #Confirmado por la alta cohesión en el Silhouette Plot y la visualización clara en el Clustering Plot.<br>
   #Clusters Rojo y Azul:Representan a las personas con mayor riesgo de obesidad o sobrepeso:<br>
-   #FAVC frecuente (alta ingesta calórica).<br>
-   #FCVC bajo a moderado (bajo consumo de vegetales).<br>
+   #High_Caloric_Consumption frecuente (alta ingesta calórica).<br>
+   #Vegetable_Consumption bajo a moderado (bajo consumo de vegetales).<br>
    #BMI elevado.<br>
    #Estos grupos tienen superposición, como se ve en el Clustering Plot, lo que indica similitudes en sus comportamientos.<br>
   #Consistencia del Número de Clusters:Tanto el Silhouette Plot como el Dendrograma confirman que 3 clusters es una segmentación adecuada.<br>
